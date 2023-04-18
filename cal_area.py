@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import math
 import pyproj
+import coor_utils
 from shapely.geometry import Polygon, Point, LineString, LinearRing
 from shapely.ops import unary_union
 
@@ -25,11 +26,13 @@ def track_area(track_data, field_data, width, deep_depth, shallow_depth):
     # ---------------------------------------------------#
     # 遍历轨迹并获取坐标
     track_points_raw_list = []
+    lons_raw_list = []
     for point in track_data:
         lon = point['lng']
         lat = point['lat']
         depth = point['deep']
         track_points_raw_list.append(tuple((lon, lat, depth)))
+        lons_raw_list.append(lon)
 
     # 遍历地块所有要素并获取坐标
     field_points = []
@@ -50,9 +53,13 @@ def track_area(track_data, field_data, width, deep_depth, shallow_depth):
     # ---------------------------------------------------#
     #   2. 坐标系转换，由地理坐标系转换为投影坐标系
     # ---------------------------------------------------#
+    # 判断轨迹坐标中位数所处 UTM 投影带
+    mid_lon = coor_utils.get_median(lons_raw_list)
+    utm_proj = coor_utils.check_utm(mid_lon)
+
     # 定义转换器，从 WGS84 坐标系转换到 UTM 坐标系
     wgs84 = pyproj.CRS('EPSG:4326')
-    utm = pyproj.CRS('EPSG:4529')
+    utm = pyproj.CRS(utm_proj)
     transformer = pyproj.Transformer.from_crs(wgs84, utm, always_xy=True)
 
     # ---------------------------------------------------#
@@ -110,14 +117,17 @@ def track_area(track_data, field_data, width, deep_depth, shallow_depth):
     # 定义深耕总面积
     deep_total_area = 0
     for dl in deep_lines_poi:
+        if len(dl) == 1:
+            deep_point = Point(dl)
+            deep_buffered = deep_point.buffer(half_width)
         if len(dl) > 1:
             deep_line = LineString(dl)
             deep_buffered = deep_line.buffer(half_width)
-            deep_poly = Polygon(deep_buffered)
-            deep_poly_list.append(deep_poly)
-            total_poly_list.append(deep_poly)
-            deep_area = deep_poly.area - (math.pi * half_width ** 2)
-            deep_total_area = deep_total_area + deep_area
+        deep_poly = Polygon(deep_buffered)
+        deep_poly_list.append(deep_poly)
+        total_poly_list.append(deep_poly)
+        deep_area = deep_poly.area
+        deep_total_area = deep_total_area + deep_area
 
     # ---------------------------------------------------#
     # 定义一个存储做浅耕活动线段点的数组
@@ -138,14 +148,17 @@ def track_area(track_data, field_data, width, deep_depth, shallow_depth):
     # 定义浅耕总面积
     shallow_total_area = 0
     for sl in shallow_lines_poi:
+        if len(sl) == 1:
+            shallow_point = Point(sl)
+            shallow_buffered = shallow_point.buffer(half_width)
         if len(sl) > 1:
             shallow_line = LineString(sl)
             shallow_buffered = shallow_line.buffer(half_width)
-            shallow_poly = Polygon(shallow_buffered)
-            shallow_poly_list.append(shallow_poly)
-            total_poly_list.append(shallow_poly)
-            shallow_area = shallow_poly.area - (math.pi * half_width ** 2)
-            shallow_total_area = shallow_total_area + shallow_area
+        shallow_poly = Polygon(shallow_buffered)
+        shallow_poly_list.append(shallow_poly)
+        total_poly_list.append(shallow_poly)
+        shallow_area = shallow_poly.area
+        shallow_total_area = shallow_total_area + shallow_area
 
     # ---------------------------------------------------#
     # 计算深耕多边形的并集面积
