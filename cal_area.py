@@ -164,8 +164,5 @@ def track_area(track_data, field_data, width, deep_depth, shallow_depth):
     deep_shallow_total_area = deep_total_area + shallow_total_area
     overlap_total_area = (deep_shallow_total_area - union_total_polygon.area) / 2000 * 3
 
-    print(field_area, total_area, cultivation_deep_area, cultivation_shallow_area, cultivation_total_area,
-          overlap_total_area)
-
     return field_area, total_area, cultivation_deep_area, cultivation_shallow_area, cultivation_total_area, \
         overlap_total_area

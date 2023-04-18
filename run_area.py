@@ -4,7 +4,6 @@ import json
 import argparse
 import cal_area as ca
 
-
 """
 python run_area.py --track_data track_json_data --field_data field_json_data --width 2.3 --deep_depth 15.0 --shallow_depth 12.0
 """
@@ -29,6 +28,8 @@ parser.add_argument('--shallow_depth', type=float, default=12.0, help='Shallow t
 
 opt = parser.parse_args()
 
-
 if __name__ == '__main__':
-    ca.track_area(opt.track_data, opt.field_data, opt.width, opt.deep_depth, opt.shallow_depth)
+    field_area, total_area, cultivation_deep_area, cultivation_shallow_area, cultivation_total_area, overlap_total_area = ca.track_area(
+        opt.track_data, opt.field_data, opt.width, opt.deep_depth, opt.shallow_depth)
+    print(field_area, total_area, cultivation_deep_area, cultivation_shallow_area, cultivation_total_area,
+          overlap_total_area)
