@@ -4,10 +4,10 @@
 # 计算中位数
 def get_median(data):
     """
-    根据农机终端轨迹计算农机作业面积
+    计算数组内中位数
 
-    :param data: 农机轨迹数据
-    :return: 地块面积, 轨迹覆盖面积, 深耕作业面积, 浅耕作业面积, 总作业面积(不包括重复作业), 重复作业面积
+    :param data: 输入数组
+    :return: 数组中位数
     """
     data.sort()
     half = len(data) // 2
@@ -16,10 +16,10 @@ def get_median(data):
 
 def check_utm(lon):
     """
-    根据农机终端轨迹计算农机作业面积
+    判断输入经度所处 CGCS2000 投影坐标系带
 
-    :param lon: 农机轨迹数据
-    :return: 地块面积, 轨迹覆盖面积, 深耕作业面积, 浅耕作业面积, 总作业面积(不包括重复作业), 重复作业面积
+    :param lon: 输入经度
+    :return: CGCS2000 投影坐标系带编号
     """
     if 73.62 <= lon < 76.50:
         return 'EPSG:4513'

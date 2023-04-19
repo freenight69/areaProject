@@ -16,7 +16,7 @@ def track_area(track_data, field_data, width, deep_depth, shallow_depth):
     :param width: 农具作业幅宽
     :param deep_depth: 农具深耕阈值
     :param shallow_depth: 农具浅耕阈值
-    :return: 地块面积, 轨迹覆盖面积, 深耕作业面积, 浅耕作业面积, 总作业面积(不包括重复作业), 重复作业面积
+    :return: 轨迹总体长度, 地块面积, 轨迹覆盖面积, 深耕作业面积, 浅耕作业面积, 总作业面积(不包括重复作业), 重复作业面积
     """
     # 农具作业幅宽的一半长度
     half_width = width / 2.0
@@ -63,7 +63,17 @@ def track_area(track_data, field_data, width, deep_depth, shallow_depth):
     transformer = pyproj.Transformer.from_crs(wgs84, utm, always_xy=True)
 
     # ---------------------------------------------------#
-    #   3. 计算地块总面积
+    #   3. 计算总体轨迹长度(km)
+    # ---------------------------------------------------#
+    # 将经纬度坐标转换为 UTM 坐标系下的坐标
+    track_points_utm = [transformer.transform(poi[0], poi[1]) for poi in track_points_raw_list]
+    # 点连接成线
+    track_line = LinearRing(track_points_utm)
+    # 点连接成线
+    track_length = track_line.length / 1000
+
+    # ---------------------------------------------------#
+    #   4. 计算地块总面积
     # ---------------------------------------------------#
     # 将经纬度坐标转换为 UTM 坐标系下的坐标
     field_points_utm = [transformer.transform(poi[0], poi[1]) for poi in field_points]
@@ -75,7 +85,7 @@ def track_area(track_data, field_data, width, deep_depth, shallow_depth):
     field_area = field_poly.area / 2000 * 3
 
     # ---------------------------------------------------#
-    #   4. 计算农机运动总面积(包含深耕、浅耕和无动作面积)
+    #   5. 计算农机运动总面积(包含深耕、浅耕和无动作面积)
     # ---------------------------------------------------#
     # 将经纬度坐标转换为 UTM 坐标系下的坐标
     total_points_utm = [transformer.transform(poi[0], poi[1]) for poi in track_points_filter_list]
@@ -89,7 +99,7 @@ def track_area(track_data, field_data, width, deep_depth, shallow_depth):
     total_area = (total_poly.area - (math.pi * half_width ** 2)) / 2000 * 3
 
     # ---------------------------------------------------#
-    #   5. 计算农机深耕、浅耕、耕作总（除去重叠面积）面积
+    #   6. 计算农机深耕、浅耕、耕作总（除去重叠面积）面积
     # ---------------------------------------------------#
     # 定义耕作总面积
     total_poly_list = []
@@ -177,5 +187,5 @@ def track_area(track_data, field_data, width, deep_depth, shallow_depth):
     deep_shallow_total_area = deep_total_area + shallow_total_area
     overlap_total_area = (deep_shallow_total_area - union_total_polygon.area) / 2000 * 3
 
-    return field_area, total_area, cultivation_deep_area, cultivation_shallow_area, cultivation_total_area, \
+    return track_length, field_area, total_area, cultivation_deep_area, cultivation_shallow_area, cultivation_total_area, \
         overlap_total_area

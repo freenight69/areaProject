@@ -69,6 +69,17 @@ if __name__ == '__main__':
     transformer = pyproj.Transformer.from_crs(wgs84, utm, always_xy=True)
 
     # ---------------------------------------------------#
+    #   计算总体轨迹长度(km)
+    # ---------------------------------------------------#
+    # 将经纬度坐标转换为 UTM 坐标系下的坐标
+    track_points_utm = [transformer.transform(poi[0], poi[1]) for poi in track_points_raw_list]
+    # 点连接成线
+    track_line = LinearRing(track_points_utm)
+    # 点连接成线
+    track_length = track_line.length
+    print(f'Track length (km): {track_length / 1000:.4f}')
+
+    # ---------------------------------------------------#
     #   计算地块总面积
     # ---------------------------------------------------#
     # 将经纬度坐标转换为 UTM 坐标系下的坐标
@@ -81,7 +92,7 @@ if __name__ == '__main__':
     # 计算点集合围成的多边形的面积
     field_poly = Polygon(field_line)
     field_area = field_poly.area
-    print(f'Field area: {field_area / 2000 * 3:.4f}')
+    print(f'Field area (mu): {field_area / 2000 * 3:.4f}')
 
     # ---------------------------------------------------#
     #   计算农机运动总面积(包含深耕、浅耕和无动作面积)
@@ -98,7 +109,7 @@ if __name__ == '__main__':
     # 计算点集合围成的多边形的面积
     total_poly = Polygon(total_buffered)
     total_area = total_poly.area - (math.pi * half_width ** 2)
-    print(f'Activity area: {total_area / 2000 * 3:.4f}')
+    print(f'Activity area (mu): {total_area / 2000 * 3:.4f}')
 
     # ---------------------------------------------------#
     #   计算农机深耕、浅耕、耕作总（除去重叠面积）面积
@@ -177,24 +188,24 @@ if __name__ == '__main__':
     union_deep_polygon = unary_union(deep_poly_list)
     # cultivation_deep_area = union_deep_polygon.area - (math.pi * half_width ** 2) * len(deep_poly_list)
     cultivation_deep_area = union_deep_polygon.area
-    print(f'Deep cultivation area: {cultivation_deep_area / 2000 * 3:.4f}')
+    print(f'Deep cultivation area (mu): {cultivation_deep_area / 2000 * 3:.4f}')
 
     # 计算浅耕多边形的并集面积
     union_shallow_polygon = unary_union(shallow_poly_list)
     # cultivation_shallow_area = union_shallow_polygon.area - (math.pi * half_width ** 2) * len(shallow_poly_list)
     cultivation_shallow_area = union_shallow_polygon.area
-    print(f'Shallow cultivation area: {cultivation_shallow_area / 2000 * 3:.4f}')
+    print(f'Shallow cultivation area (mu): {cultivation_shallow_area / 2000 * 3:.4f}')
 
     # 计算总作业多边形的并集面积
     union_total_polygon = unary_union(total_poly_list)
     # cultivation_total_area = union_total_polygon.area - (math.pi * half_width ** 2) * len(total_poly_list)
     cultivation_total_area = union_total_polygon.area
-    print(f'Total cultivation area: {cultivation_total_area / 2000 * 3:.4f}')
+    print(f'Total cultivation area (mu): {cultivation_total_area / 2000 * 3:.4f}')
 
     # 计算重复作业面积
     deep_shallow_total_area = deep_total_area + shallow_total_area
     overlap_total_area = deep_shallow_total_area - cultivation_total_area
-    print(f'Overlap cultivation area: {overlap_total_area / 2000 * 3:.4f}')
+    print(f'Overlap cultivation area (mu): {overlap_total_area / 2000 * 3:.4f}')
 
     # ---------------------------------------------------#
     #   绘制多边形和结果
@@ -225,5 +236,5 @@ if __name__ == '__main__':
         ax.add_patch(plt.Polygon(deep_poly.exterior, color='green', alpha=0.5))
         ax.scatter(*zip(*dl), color='green', s=5, zorder=2)
     ax.set_aspect('equal', 'box')
-    ax.set_title(f'Total cultivation area: {cultivation_total_area / 2000 * 3:.4f}')
+    ax.set_title(f'Total cultivation area (mu): {cultivation_total_area / 2000 * 3:.4f}')
     plt.show()

@@ -29,7 +29,12 @@ parser.add_argument('--shallow_depth', type=float, default=12.0, help='Shallow t
 opt = parser.parse_args()
 
 if __name__ == '__main__':
-    field_area, total_area, cultivation_deep_area, cultivation_shallow_area, cultivation_total_area, overlap_total_area = ca.track_area(
+    track_length, field_area, total_area, cultivation_deep_area, cultivation_shallow_area, cultivation_total_area, overlap_total_area = ca.track_area(
         opt.track_data, opt.field_data, opt.width, opt.deep_depth, opt.shallow_depth)
-    print(field_area, total_area, cultivation_deep_area, cultivation_shallow_area, cultivation_total_area,
-          overlap_total_area)
+    print(f'Track length (km): {track_length:.4f}')
+    print(f'Activity area (mu): {total_area:.4f}')
+    print(f'Field area (mu): {field_area:.4f}')
+    print(f'Deep cultivation area (mu): {cultivation_deep_area:.4f}')
+    print(f'Shallow cultivation area (mu): {cultivation_shallow_area:.4f}')
+    print(f'Total cultivation area (mu): {cultivation_total_area:.4f}')
+    print(f'Overlap cultivation area (mu): {overlap_total_area:.4f}')
